@@ -1,0 +1,55 @@
+# Choisir l'image de base (ici, Ubuntu 20.04)
+Vagrant.configure("2") do |config|
+
+  # Spécifier l'OS de la machine virtuelle
+  config.vm.box = "ubuntu/bionic64"
+
+  # Définir les ressources pour le provider VirtualBox
+  config.vm.provider "virtualbox" do |vb|
+    vb.memory = "2048"  # 2 Go de RAM
+    vb.cpus = 2         # 2 processeurs
+  end
+
+  # Définir les ressources pour le provider VMware
+  config.vm.provider "vmware_desktop" do |vb|
+    vb.memory = "2048"  # 2 Go de RAM
+    vb.cpus = 2         # 2 processeurs
+    vb.network_adapter = "nat"  # ou "bridged" ou "hostonly" en fonction de votre réseau
+  end
+
+  # Configurer un réseau privé avec DHCP (ou une adresse IP statique si nécessaire)
+  config.vm.network "private_network", type: "dhcp", virtualbox__intnet: true
+
+  # Script de provisionnement pour installer Docker
+  config.vm.provision "shell", inline: <<-SHELL
+    # Mise à jour de la VM
+    sudo apt-get update -y
+    sudo apt-get upgrade -y
+
+    # Installation des dépendances pour Docker
+    sudo apt-get install -y apt-transport-https ca-certificates curl software-properties-common
+
+    # Ajout de la clé GPG de Docker
+    curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo apt-key add -
+
+    # Ajouter le dépôt Docker à la liste des sources
+    sudo add-apt-repository "deb [arch=amd64] https://download.docker.com/linux/ubuntu $(lsb_release -cs) stable"
+
+    # Mise à jour de la liste des paquets après l'ajout du dépôt
+    sudo apt-get update -y
+
+    # Installation de Docker
+    sudo apt-get install -y docker-ce
+
+    # Ajouter l'utilisateur vagrant au groupe Docker pour éviter d'utiliser sudo à chaque commande Docker
+    sudo usermod -aG docker vagrant
+
+    # Vérification de l'installation de Docker
+    docker --version
+
+    # Démarrage de Docker
+    sudo systemctl enable docker
+    sudo systemctl start docker
+  SHELL
+
+end
