@@ -1,0 +1,28 @@
+version: '3.8'
+
+services:
+  # Service principal : application web
+  app:
+    build: .
+    container_name: teachmemore_app
+    environment:
+      - FLASK_ENV=development
+      - MYSQL_HOST=db
+      - MYSQL_PORT=3307
+      - MYSQL_USER=root
+      - MYSQL_PASSWORD=Amadou224
+      - MYSQL_DB=teachmemore_db
+    depends_on:
+      - db
+    network_mode: host  # Utilise directement le réseau de l'hôte pour ce service
+    restart: always  # Permet de redémarrer l'application si elle échoue
+
+  # Service de base de données MySQL
+  db:
+    image: mysql:8.0
+    container_name: teachmemore_db
+    environment:
+      MYSQL_ROOT_PASSWORD: Amadou224
+      MYSQL_DATABASE: teachmemore_db
+    network_mode: host  # Utilise directement le réseau de l'hôte pour la base de données
+    restart: always  # Permet de redémarrer la base de données si elle échoue
